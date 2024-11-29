@@ -45,8 +45,8 @@ function getMsgInfo(balance) {
 function App() {
   const [friends, setFriends] = useState(initalFriends);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [totalBill, setTotalBill] = useState(100);
-  const [myExpenses, setMyExpenses] = useState(25);
+  const [totalBill, setTotalBill] = useState("");
+  const [myExpenses, setMyExpenses] = useState("");
   const [whoWillPay, setWhoWillPay] = useState("eu");
 
   function handleSubmit(event) {
@@ -69,6 +69,11 @@ function App() {
 
       return updatedFriends;
     });
+
+    setSelectedFriend(null);
+    setTotalBill("");
+    setMyExpenses("");
+    setWhoWillPay("eu");
   }
 
   function handleClickFriend(friend) {
@@ -99,12 +104,9 @@ function App() {
           {friends.map((friend) => {
             const isSelectedFriend = friend.id === selectedFriend?.id;
             const { message, color } = getMsgInfo(friend.balance);
-            
+
             return (
-              <li
-                key={friend.id}
-                style={{ padding: ".5rem 1rem" }}
-              >
+              <li key={friend.id} style={{ padding: ".5rem 1rem" }}>
                 <h3>{friend.name}</h3>
                 <p style={{ color }}>{message}</p>
                 <button onClick={() => handleClickFriend(friend)}>
