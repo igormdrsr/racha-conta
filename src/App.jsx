@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ListItem } from "./components/list-item";
+// import { ListItem } from "./components/list-item";
 import { Button } from "./components/button";
 import "./App.css";
 
-const friends = [
+const initalFriends = [
   {
     id: crypto.randomUUID(),
     name: "John",
@@ -22,31 +22,71 @@ const friends = [
     description: "Joe is a good friend",
     balance: 10,
   },
-  {
-    id: crypto.randomUUID(),
-    name: "Jill",
-    description: "Jill is a good friend",
-    balance: -5,
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Jack",
-    description: "Jack is a good friend",
-    balance: -10,
-  },
 ];
 
+function getMsgInfo(balance) {
+  let message;
+  let color;
+
+  if (balance < 0) {
+    message = `Está devendo ${Math.abs(balance)} reais para você`;
+    color = "red";
+  } else if (balance > 0) {
+    message = `Você está devendo ${balance} reais`;
+    color = "green";
+  } else {
+    message = `Não há débitos pendentes`;
+    color = "lightblue";
+  }
+
+  return { message, color };
+}
+
 function App() {
+  const [friends, setFriends] = useState(initalFriends);
   const [selectedFriend, setSelectedFriend] = useState(null);
+  const [totalBill, setTotalBill] = useState(100);
+  const [myExpenses, setMyExpenses] = useState(25);
+  const [whoWillPay, setWhoWillPay] = useState("eu");
 
   function handleSubmit(event) {
     event.preventDefault();
+
+    setFriends((previous) => {
+      const updatedFriends = previous.map((friend) => {
+        if (friend.id === selectedFriend.id) {
+          return {
+            ...friend,
+            balance:
+              whoWillPay === "eu"
+                ? friend.balance - (totalBill - myExpenses)
+                : friend.balance + myExpenses,
+          };
+        }
+
+        return friend;
+      });
+
+      return updatedFriends;
+    });
   }
 
   function handleClickFriend(friend) {
     setSelectedFriend((previous) =>
       previous?.id === friend.id ? null : friend
     );
+  }
+
+  function handleChangeBill(event) {
+    setTotalBill(Number(event.target.value));
+  }
+
+  function handleChangeMyExpenses(event) {
+    setMyExpenses(Number(event.target.value));
+  }
+
+  function handleChangeWhoWillPay(event) {
+    setWhoWillPay(event.target.value);
   }
 
   return (
@@ -58,14 +98,19 @@ function App() {
         <ol>
           {friends.map((friend) => {
             const isSelectedFriend = friend.id === selectedFriend?.id;
-
+            const { message, color } = getMsgInfo(friend.balance);
+            
             return (
-              <ListItem
+              <li
                 key={friend.id}
-                friend={friend}
-                isSelectedFriend={isSelectedFriend}
-                onClick={handleClickFriend}
-              />
+                style={{ padding: ".5rem 1rem" }}
+              >
+                <h3>{friend.name}</h3>
+                <p style={{ color }}>{message}</p>
+                <button onClick={() => handleClickFriend(friend)}>
+                  {isSelectedFriend ? "Fechar" : "Selecionar"}
+                </button>
+              </li>
             );
           })}
         </ol>
@@ -80,7 +125,9 @@ function App() {
             }}
             onSubmit={handleSubmit}
           >
-            <h2 style={{marginBottom: "1rem"}}>Rache a conta com {selectedFriend.name}</h2>
+            <h2 style={{ marginBottom: "1rem" }}>
+              Rache a conta com {selectedFriend.name}
+            </h2>
             <div
               style={{
                 display: "flex",
@@ -92,21 +139,31 @@ function App() {
             >
               <label style={{ display: "flex", flexDirection: "column" }}>
                 Valor
-                <input type="number" />
+                <input
+                  type="number"
+                  value={totalBill}
+                  onChange={handleChangeBill}
+                />
               </label>
               <label style={{ display: "flex", flexDirection: "column" }}>
                 Seus gastos
-                <input type="number" />
+                <input
+                  type="number"
+                  value={myExpenses}
+                  onChange={handleChangeMyExpenses}
+                />
               </label>
               <label style={{ display: "flex", flexDirection: "column" }}>
                 Quem vai pagar
-                <select>
-                  <option value="">Eu</option>
-                  <option value="friend">{selectedFriend.name}</option>
+                <select value={whoWillPay} onChange={handleChangeWhoWillPay}>
+                  <option value="eu">Eu</option>
+                  <option value={selectedFriend.name}>
+                    {selectedFriend.name}
+                  </option>
                 </select>
               </label>
             </div>
-            <Button onClick={() => console.log("ASLJDHASKJDHASKJ")}>Calcular</Button>
+            <Button>Calcular</Button>
           </form>
         )}
       </main>
